@@ -12,3 +12,4 @@ setuptools==65.5.1
 smart-open==6.3.0
 tqdm==4.65.0
 wheel==0.38.4
+

@@ -7,6 +7,14 @@ from nltk.corpus import wordnet
 class FruitChatbot:
     def __init__(self):
         self.knowledge_graph, self.fruit_grow_info = self.build_knowledge_graph()
+        self.greetings_list = [
+            "hi", "hey", "hello", "good morning", "good afternoon", "good evening",
+            "greetings", "salutations", "howdy", "hola", "bonjour", "ciao", "namaste",
+            "yo", "what's up", "hi there", "good day", "how's it going", "sup"
+        ]
+        self.grow_list = ["grow", "grows", "growing", "grew", "growed", "growen"]
+        self.location_list = ["where", "place", "location", "country", "countries", "how"]
+        self.is_list = ["has", "contains", "have"]
 
     def build_knowledge_graph(self):
         graph = nx.Graph()
@@ -77,35 +85,26 @@ class FruitChatbot:
         return any(self.is_synonym(word, w) for w in word_list)
 
     def answer_question(self, question):
-        greetings_list = [
-            "hi", "hey", "hello", "good morning", "good afternoon", "good evening",
-            "greetings", "salutations", "howdy", "hola", "bonjour", "ciao", "namaste",
-            "yo", "what's up", "hi there", "good day", "how's it going", "sup"
-        ]
-        grow_list = ["grow", "grows", "growing", "grew", "growed", "growen"]
-        location_list = ["where", "place", "location", "country", "countries", "how"]
-        is_list = ["has", "contains", "have"]
-
         if any(greeting in question.lower() or self.is_synonym_of_list(question.lower(), greeting.split()) for greeting
-               in greetings_list):
+               in self.greetings_list):
             return "Hello! How can I assist you with fruits today?"
 
-        fruit = self.fuzzy_match(question, self.knowledge_graph.nodes)
+        fruit = self.get_fruit_type(question)
 
         if fruit:  # If a fruit was found
             # Get the relationships of the fruit in the knowledge graph
             relationships = self.knowledge_graph.edges(fruit, data=True)
 
             if any(word in question for word in
-                   grow_list or self.is_synonym_of_list(question.lower(), grow_list)) or any(
+                   self.grow_list or self.is_synonym_of_list(question.lower(), self.grow_list)) or any(
                     word in question for word in
-                    location_list or self.is_synonym_of_list(question.lower(), location_list)):
+                    self.location_list or self.is_synonym_of_list(question.lower(), self.location_list)):
                 return f"a {fruit} grows {self.fruit_grow_info[fruit]}."
 
             if relationships:
-                if any(word in question for word in is_list):
+                if any(word in question for word in self.is_list or self.is_synonym_of_list(question.lower(),self.is_list)):
                     # Extract the nutrient from the question
-                    keywords = [word for word in is_list if word in question]
+                    keywords = [word for word in self.is_list if word in question]
                     nutrient = question.split(keywords[0])[1].strip()
 
                     # Find relationships matching the nutrient
@@ -125,6 +124,9 @@ class FruitChatbot:
                 return f"I'm sorry, I don't have information about {fruit}."
         else:
             return "I'm sorry, I couldn't understand your query or find a matching fruit."
+
+    def get_fruit_type(self, question):
+        return self.fuzzy_match(question, self.knowledge_graph.nodes)
 
     def chat(self):
         while True:
