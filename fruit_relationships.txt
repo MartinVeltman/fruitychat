@@ -1,0 +1,108 @@
+apple:is:a fruit
+banana:is:a fruit
+orange:is:a fruit
+grape:is:a fruit
+strawberry:is:a fruit
+mango:is:a fruit
+pineapple:is:a fruit
+watermelon:is:a fruit
+pear:is:a fruit
+kiwi:is:a fruit
+blueberry:is:a fruit
+raspberry:is:a fruit
+peach:is:a fruit
+cherry:is:a fruit
+lemon:is:a fruit
+lime:is:a fruit
+plum:is:a fruit
+pomegranate:is:a fruit
+blackberry:is:a fruit
+avocado:is:a fruit
+apricot:is:a fruit
+coconut:is:a fruit
+fig:is:a fruit
+grapefruit:is:a fruit
+guava:is:a fruit
+melon:is:a fruit
+papaya:is:a fruit
+passionfruit:is:a fruit
+apple:is:red or green
+banana:is:yellow
+orange:is:orange
+strawberry:is:red
+mango:is:yellow or orange
+pineapple:is:yellow
+pear:is:green
+kiwi:is:green
+blueberry:is:blue
+raspberry:is:red
+peach:is:orange
+cherry:is:red
+lemon:is:yellow
+lime:is:green
+plum:is:purple
+pomegranate:is:red
+blackberry:is:black
+avocado:is:green
+apricot:is:orange
+coconut:is:brown
+fig:is:purple or green
+grapefruit:is:yellow or pink
+guava:is:green
+papaya:is:orange
+passionfruit:is:purple
+apple:tastes:sweet or tart
+banana:tastes:sweet
+orange:tastes:sweet or tangy
+grape:tastes:sweet
+strawberry:tastes:sweet or tangy
+mango:tastes:sweet
+pineapple:tastes:sweet and tangy
+watermelon:tastes:sweet
+pear:tastes:sweet
+kiwi:tastes:tart
+blueberry:tastes:sweet and tangy
+raspberry:tastes:sweet and tangy
+peach:tastes:sweet
+cherry:tastes:sweet
+lemon:tastes:sour
+lime:tastes:sour
+plum:tastes:sweet
+pomegranate:tastes:sweet and tangy
+blackberry:tastes:sweet and tangy
+avocado:tastes:creamy and nutty
+apricot:tastes:sweet
+coconut:tastes:sweet
+fig:tastes:sweet
+grapefruit:tastes:tart
+guava:tastes:sweet and tangy
+papaya:tastes:sweet and musky
+passionfruit:tastes:tangy and tropical
+apple:has:vitamin C, dietary fiber, and antioxidants
+banana:has:vitamin B6, vitamin C, and potassium
+orange:has:vitamin C, dietary fiber, and folate
+grape:has:vitamin C, vitamin K, and antioxidants
+strawberry:has:vitamin C, manganese, and antioxidants
+mango:has:vitamin C, vitamin A, and dietary fiber
+pineapple:has:vitamin C, manganese, and bromelain
+watermelon:has:vitamin C, vitamin A, and lycopene
+pear:has:vitamin C, dietary fiber, and antioxidants
+kiwi:has:vitamin C, vitamin K, and dietary fiber
+blueberry:has:vitamin C, vitamin K, and antioxidants
+raspberry:has:vitamin C, dietary fiber, and antioxidants
+peach:has:vitamin C, vitamin A, and dietary fiber
+cherry:has:vitamin C, potassium, and antioxidants
+lemon:has:vitamin C, vitamin B6, and antioxidants
+lime:has:vitamin C, vitamin A, and antioxidants
+plum:has:vitamin C, vitamin K, and dietary fiber
+pomegranate:has:vitamin C, vitamin K, and antioxidants
+blackberry:has:vitamin C, vitamin K, and antioxidants
+avocado:has:vitamin K, vitamin E, and healthy fats
+apricot:has:vitamin A, vitamin C, and dietary fiber
+coconut:has:manganese, potassium, and electrolytes
+fig:has:vitamin K, potassium, and dietary fiber
+grapefruit:has:vitamin C, vitamin A, and dietary fiber
+guava:has:vitamin C, dietary fiber, and antioxidants
+melon:has:vitamin C, vitamin A, and dietary fiber
+papaya:has:vitamin C, vitamin A, and dietary fiber
+passionfruit:has:vitamin C, vitamin A, and dietary fiber

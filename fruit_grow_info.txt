@@ -1,0 +1,28 @@
+apple:on a tree
+banana:on a banana plant
+orange:on an orange tree
+grape:on a grapevine
+strawberry:on a strawberry plant
+mango:on a mango tree
+pineapple:on a pineapple plant
+watermelon:on a watermelon vine
+pear:on a pear tree
+kiwi:on a kiwi vine
+blueberry:on a blueberry bush
+raspberry:on a raspberry bush
+peach:on a peach tree
+cherry:on a cherry tree
+lemon:on a lemon tree
+lime:on a lime tree
+plum:on a plum tree
+pomegranate:on a pomegranate tree
+blackberry:on a blackberry bush
+avocado:on an avocado tree
+apricot:on an apricot tree
+coconut:on a coconut palm
+fig:on a fig tree
+grapefruit:on a grapefruit tree
+guava:on a guava tree
+melon:on a melon vine
+papaya:on a papaya tree
+passionfruit:on a passion fruit vine

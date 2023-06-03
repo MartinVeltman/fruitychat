@@ -19,30 +19,26 @@ class FruitChatbot:
     def build_knowledge_graph(self):
         graph = nx.Graph()
 
-        fruits = ["apple", "banana", "orange", "grape"]
+        fruits = [
+            "apple", "banana", "orange", "grape", "strawberry", "mango", "pineapple", "watermelon",
+            "pear", "kiwi", "blueberry", "raspberry", "peach", "cherry", "lemon", "lime", "plum",
+            "pomegranate", "blackberry", "avocado", "apricot", "coconut", "fig", "grapefruit",
+            "guava", "melon", "papaya", "passion fruit"
+        ]
         graph.add_nodes_from(fruits)
 
-        relationships = [
-            ("apple", "is", "a fruit"),
-            ("banana", "is", "a fruit"),
-            ("orange", "is", "a fruit"),
-            ("apple", "is", "red or green"),
-            ("banana", "is", "yellow"),
-            ("orange", "is", "orange"),
-            ("apple", "has", "vitamin C"),
-            ("apple", "has", "fiber"),
-            ("apple", "has", "sugar"),
-            ("banana", "has", "vitamin B6"),
-            ("banana", "has", "potassium"),
-            ("orange", "has", "vitamin C and fiber")
-        ]
+        relationships = []
+        with open("fruit_relationships.txt", "r") as file:
+            for line in file:
+                relationship = line.strip().split(":")
+                relationships.append(relationship)
 
-        fruit_grow_info: Dict[str, str] = {
-            "apple": "on a tree",
-            "banana": "on a banana plant",
-            "orange": "on an orange tree",
-            "grape": "on a grapevine"
-        }
+        fruit_grow_info: Dict[str, str] = {}
+        with open("fruit_grow_info.txt", "r") as file:
+            for line in file:
+                fruit, growth_info = line.strip().split(":")
+                fruit_grow_info[fruit] = growth_info
+
 
         # Add the relationships as edges to the graph
         graph.add_edges_from((r[0], r[2], {'relation': r[1]}) for r in relationships)
