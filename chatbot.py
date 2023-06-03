@@ -1,5 +1,4 @@
 from typing import Dict
-
 from fuzzywuzzy import fuzz
 import networkx as nx
 from nltk.corpus import wordnet
@@ -71,7 +70,6 @@ class FruitChatbot:
         return False
 
     def is_synonym(self, word1, word2):
-        # Check if two words are synonyms
         return self.are_words_similar(word1, word2)
 
     def is_synonym_of_list(self, word, word_list):
@@ -102,7 +100,7 @@ class FruitChatbot:
                    grow_list or self.is_synonym_of_list(question.lower(), grow_list)) or any(
                     word in question for word in
                     location_list or self.is_synonym_of_list(question.lower(), location_list)):
-                return f"{fruit} grows {self.fruit_grow_info[fruit]}."
+                return f"a {fruit} grows {self.fruit_grow_info[fruit]}."
 
             if relationships:
                 if any(word in question for word in is_list):
