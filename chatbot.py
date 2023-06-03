@@ -1,6 +1,6 @@
 from fuzzywuzzy import fuzz
 import networkx as nx
-
+from nltk.corpus import wordnet
 
 class FruitChatbot:
     def __init__(self):
@@ -10,9 +10,9 @@ class FruitChatbot:
         graph = nx.Graph()
 
         fruits = ["apple", "banana", "orange"]
+
         graph.add_nodes_from(fruits)
 
-        # Define relationships between fruits
         relationships = [
             ("apple", "is", "a fruit"),
             ("banana", "is", "a fruit"),
@@ -21,14 +21,21 @@ class FruitChatbot:
             ("banana", "is", "yellow"),
             ("orange", "is", "orange"),
             ("apple", "has", "vitamin C"),
+            ("apple", "has", "fiber"),
+            ("apple", "has", "sugar"),
+            ("banana", "has", "vitamin B6"),
             ("banana", "has", "potassium"),
             ("orange", "has", "vitamin C and fiber")
         ]
+
+        # Add the relationships as edges to the graph
         graph.add_edges_from((r[0], r[2], {'relation': r[1]}) for r in relationships)
 
+        # Return the built knowledge graph
         return graph
 
     def fuzzy_match(self, query, entities):
+        # Find the best match for the query among the list of entities
         best_match = None
         max_score = 0
 
@@ -40,22 +47,68 @@ class FruitChatbot:
 
         return best_match
 
+    @staticmethod
+    def are_words_similar(word1, word2):
+        # Check if two words are similar by comparing their WordNet synsets
+        synsets_word1 = wordnet.synsets(word1)
+        synsets_word2 = wordnet.synsets(word2)
+
+        for synset1 in synsets_word1:
+            for synset2 in synsets_word2:
+                similarity = synset1.path_similarity(synset2)
+                if similarity is not None and similarity > 0.7:
+                    return True
+
+        return False
+
+    def is_synonym(self, word1, word2):
+        # Check if two words are synonyms
+        return self.are_words_similar(word1, word2)
+
+    def is_synonym_of_list(self, word, word_list):
+        # Check if a word is a synonym of any word in a given list
+        return any(self.is_synonym(word, w) for w in word_list)
+
     def answer_question(self, question):
+        greetings = [
+            "hi", "hey", "hello", "good morning", "good afternoon", "good evening",
+            "greetings", "salutations", "howdy", "hola", "bonjour", "ciao", "namaste",
+            "yo", "what's up", "hi there", "good day", "how's it going", "sup"
+        ]
+
+        # check if the question is a greeting
+
+        if any(greeting in question.lower() or self.is_synonym_of_list(question.lower(), greeting.split()) for greeting
+               in greetings):
+            return "Hello! How can I assist you with fruits today?"
+
+
+
+        # List of keywords indicating a question about fruit contents
+        is_list = ["has", "contains", "have"]
+
+        # Find the best matching fruit for the query
         fruit = self.fuzzy_match(question, self.knowledge_graph.nodes())
 
-        if fruit:
+        if fruit:  # If a fruit was found
+            # Get the relationships of the fruit in the knowledge graph
             relationships = self.knowledge_graph.edges(fruit, data=True)
 
             if relationships:
-                if "has" in question:
-                    nutrient = question.split("has")[1].strip()
+                if any(word in question for word in is_list):
+                    # Extract the nutrient from the question
+                    keywords = [word for word in is_list if word in question]
+                    nutrient = question.split(keywords[0])[1].strip()
+
+                    # Find relationships matching the nutrient
                     nutrient_relationships = [r for r in relationships if
-                                              r[2]['relation'] == "has" and nutrient in r[1]]
+                                              fuzz.partial_ratio(r[2]['relation'], "has") > 80 and nutrient in r[1]]
                     if nutrient_relationships:
                         return f"Yes, {fruit} contains {nutrient}."
                     else:
                         return f"No, I'm not aware of {fruit} containing {nutrient}."
                 else:
+                    # Generate the response with the known relationships of the fruit
                     response = f"Here's what I know about {fruit}:"
                     for relationship in relationships:
                         response += f"\n- {fruit} {relationship[2]['relation']} {relationship[1]}"
@@ -78,7 +131,6 @@ class FruitChatbot:
                 print("Chatbot:", response)
             except Exception as e:
                 print("Chatbot: An error occurred:", str(e))
-
 
 chatbot = FruitChatbot()
 chatbot.chat()
