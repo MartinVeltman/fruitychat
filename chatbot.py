@@ -132,7 +132,7 @@ class FruitChatbot:
         while True:
             user_input = input("User: ")
 
-            if user_input.lower() == "exit":
+            if user_input.lower() == "exit" or user_input.lower() == "quit":
                 print("Chatbot: Goodbye!")
                 break
 
