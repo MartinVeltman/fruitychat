@@ -20,7 +20,8 @@ class FruitChatbot:
 
         self.location_list = ["where", "place", "location", "country", "countries"]
 
-        self.is_list = ["has", "contains", "have"]
+        self.is_list = ["has", "contains", "have", "nutrients", "nutrient", "vitamins", "vitamin", "minerals",
+                        "ingredient", "ingredients", "contain"]
 
         self.tastes_list = ["taste", "tastes", "tasting", "tasted", "tasteing", "tasteen", "flavor", "flavors",
                             "flavour", "flavours", "flavoring", "flavouring", "flavorings", "flavourings", "like",
@@ -29,14 +30,8 @@ class FruitChatbot:
         self.color_list = ["color", "colors", "colour", "colours", "coloring", "colouring", "colorings", "colourings",
                            "look", "looks", "looking", "looked", "looken",
                            "appearance", "appearances", "appearing", "appeared", "appearen", "appearence",
-                           "appearences", "appearencing", "appearenced", "appearencen", 'yellow', 'scarlet', 'coral',
-                           'silver', 'amber', 'azure', 'coffee', 'khaki', 'aquamarine',
-                           'lime', 'crimson', 'rose', 'vermilion', 'jade', 'white', 'blue', 'turquoise', 'chocolate',
-                           'plum', 'carmine', 'indigo', 'orchid', 'teal', 'purple', 'bronze', 'lavender', 'wheat',
-                           'magenta', 'beige', 'cyan', 'lemon', 'sapphire', 'champagne', 'salmon', 'green',
-                           'chartreuse', 'ochre', 'copper', 'pink', 'gold', 'burgundy', 'orange', 'peach', 'emerald',
-                           'mauve', 'gray', 'apricot', 'navy', 'mustard', 'brown', 'lilac', 'maroon', 'olive', 'violet',
-                           'tan', 'cerise', 'cream', 'sienna', 'cerulean', 'ivory', 'red', 'grey', 'black', 'fuchsia']
+                           "appearences", "appearencing", "appearenced", "appearencen", "yellow", "red", "green",
+                           " orange", "blue", "purple", "pink"]
 
         self.color_relationships = self.get_color_relationships()
 
@@ -63,14 +58,11 @@ class FruitChatbot:
                 fruit, growth_info = line.strip().split(":")
                 fruit_grow_info[fruit] = growth_info
 
-        # Add the relationships as edges to the graph
         graph.add_edges_from((r[0], r[2], {'relation': r[1]}) for r in relationships)
 
-        # Return the built knowledge graph
         return graph, fruit_grow_info
 
     def fuzzy_match(self, query, entities):
-        # Find the best match for the query among the list of entities
         best_match = None
         max_score = 0
 
@@ -99,7 +91,6 @@ class FruitChatbot:
         return self.are_words_similar(word1, word2)
 
     def is_synonym_of_list(self, word, word_list):
-        # Check if a word is a synonym of any word in a given list
         return any(self.is_synonym(word, w) for w in word_list)
 
     def extract_colors(self, question):
@@ -125,10 +116,12 @@ class FruitChatbot:
         if len(colors) == 0:
             return f"{fruit} can have the color {self.color_relationships[fruit][0]}"
 
-        for color in colors:
-            if color in self.color_relationships[fruit] or self.is_synonym_of_list(color,
-                                                                                   self.color_relationships[fruit]):
-                return f"{fruit} can have the color {color}"
+        if len(self.color_relationships[fruit]) > 0:
+            for color in colors:
+                if color in self.color_relationships[fruit] or self.is_synonym_of_list(color,
+                                                                                       self.color_relationships[fruit]):
+                    return f"{fruit} can have the color {color}"
+
         return f"{fruit} is not {colors[0]}"
 
     def is_color_question(self, question):
@@ -154,10 +147,14 @@ class FruitChatbot:
 
     def answer_ingredient_question(self, fruit, nutrient):
         relationships = self.knowledge_graph.edges(fruit, data=True)
-        # Find relationships matching the nutrient
         nutrient_relationships = [r for r in relationships if
                                   fuzz.partial_ratio(r[2]['relation'], "has") > 80 and nutrient in r[1]]
-        if nutrient_relationships:
+
+        if nutrient == "":
+            nutrient = [r[1] for r in nutrient_relationships]
+            nutrient = str(nutrient)[2:-2]
+            return f"{fruit} contains {nutrient}."
+        elif nutrient_relationships:
             return f"Yes, {fruit} contains {nutrient}."
         else:
             return f"No, I'm not aware of {fruit} containing {nutrient}."
@@ -174,12 +171,18 @@ class FruitChatbot:
         else:
             return f"No, I'm not aware of the taste of {fruit} being {taste}."
 
-    def answer_question(self, question):
+    def is_greeting(self, question):
         if any(greeting in question.lower() or self.is_synonym_of_list(question.lower(), greeting.split()) for greeting
                in self.greetings_list):
+            return True
+        return False
+
+    def answer_question(self, question):
+        if self.is_greeting(question):
             return "Hello! How can I assist you with fruits today?"
 
         fruit = self.get_fruit_type(question)
+        print(fruit)
         colors = self.extract_colors(question)
 
         if fruit:
@@ -187,10 +190,12 @@ class FruitChatbot:
                 return self.answer_grow_question(fruit)
 
             if self.is_ingredient_question(question):
-                # Extract the nutrient from the question
                 keywords = [word for word in self.is_list if word in question]
-                nutrient = question.split(keywords[0])[1].strip()
-                return self.answer_ingredient_question(fruit, nutrient)
+                if keywords:
+                    nutrient = question.split(keywords[0])[1].strip()
+                    return self.answer_ingredient_question(fruit, nutrient)
+                else:
+                    return "I'm sorry, I couldn't determine the nutrient in the question."
 
             if self.is_taste_question(question):
                 # Extract the taste from the question
