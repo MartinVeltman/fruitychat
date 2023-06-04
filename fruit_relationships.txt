@@ -26,31 +26,31 @@ guava:is:a fruit
 melon:is:a fruit
 papaya:is:a fruit
 passionfruit:is:a fruit
-apple:is:red or green
-banana:is:yellow
-orange:is:orange
-strawberry:is:red
-mango:is:yellow or orange
-pineapple:is:yellow
-pear:is:green
-kiwi:is:green
-blueberry:is:blue
-raspberry:is:red
-peach:is:orange
-cherry:is:red
-lemon:is:yellow
-lime:is:green
-plum:is:purple
-pomegranate:is:red
-blackberry:is:black
-avocado:is:green
-apricot:is:orange
-coconut:is:brown
-fig:is:purple or green
-grapefruit:is:yellow or pink
-guava:is:green
-papaya:is:orange
-passionfruit:is:purple
+apple:is color:red or green
+banana:is color:yellow
+orange:is color:orange
+strawberry:is color:red
+mango:is color:yellow or orange
+pineapple:is color:yellow
+pear:is color:green
+kiwi:is color:green
+blueberry:is color:blue
+raspberry:is color:red
+peach:is color:orange
+cherry:is color:red
+lemon:is color:yellow
+lime:is color:green
+plum:is color:purple
+pomegranate:is color:red
+blackberry:is color:black
+avocado:is color:green
+apricot:is color:orange
+coconut:is color:brown
+fig:is color:purple or green
+grapefruit:is color:yellow or pink
+guava:is color:green
+papaya:is color:orange
+passionfruit:is color:purple
 apple:tastes:sweet or tart
 banana:tastes:sweet
 orange:tastes:sweet or tangy

@@ -27,13 +27,36 @@ class FruitChatbot:
 
         self.color_relationships = self.get_color_relationships()
 
+    def extract_colors(self, question):
+        doc = self.nlp(question)
+        colors = []
+
+        for token in doc:
+            if token.text.lower() in ['red', 'green', 'yellow', 'orange', 'blue', 'purple', 'pink']:
+                colors.append(token.text.lower())
+        print("Colors", colors)
+        return colors
+
     def get_color_relationships(self):
         color_relationships = {}
         for fruit in self.knowledge_graph.nodes:
-            colors = [r[2]['color'] for r in self.knowledge_graph.edges(fruit, data=True) if
-                      r[2]['relation'] == 'is' and 'color' in r[2]]
+            colors = [r[1].strip() for r in self.knowledge_graph.edges(fruit, data=True) if
+                      r[2]['relation'] == 'is color']
             color_relationships[fruit] = colors
         return color_relationships
+
+    def answer_color_question(self, fruit, colors):
+       #als colors nul is en er geen kleur opgeven is antwoord met bijv apple is rood
+        if len(colors) == 0:
+            return f"{fruit} can have the color {self.color_relationships[fruit][0]}"
+
+        #als colors niet nul is en er is een kleur opgegeven is kijk of de kleur in de lijst van kleuren van de fruit zit of een synoniem is zo ja antwoord met bijv apple is rood
+       #zo nee antwoord met bijv apple is niet rood
+        for color in colors:
+            if color in self.color_relationships[fruit] or self.is_synonym_of_list(color, self.color_relationships[fruit]):
+                return f"{fruit} can have the color {color}"
+        return f"{fruit} is not {colors[0]}"
+
 
     def build_knowledge_graph(self):
         graph = nx.Graph()
@@ -97,17 +120,8 @@ class FruitChatbot:
         # Check if a word is a synonym of any word in a given list
         return any(self.is_synonym(word, w) for w in word_list)
 
-    def extract_colors(self, question):
-        doc = self.nlp(question)
-        colors = []
-
-        for ent in doc.ents:
-            if ent.label_ == "COLOR":
-                colors.append(ent.text)
-
-        return colors
-
     def is_color_question(self, question):
+        print("Is color question", any(word in question for word in self.color_list))
         return any(word in question for word in self.color_list)
 
     def is_grow_question(self, question):
@@ -118,15 +132,8 @@ class FruitChatbot:
         return any(word in question for word in self.is_list)
 
     def is_taste_question(self, question):
+        print("Is taste question", any(word in question for word in self.tastes_list))
         return any(word in question for word in self.tastes_list)
-
-    def answer_color_question(self, fruit, colors):
-        fruits_with_colors = [fruit for fruit, fruit_colors in self.color_relationships.items() if
-                              any(color in fruit_colors for color in colors)]
-        if fruits_with_colors:
-            return f"A {fruit} can be {', '.join(colors)}. Other fruits with the same color are: {', '.join(fruits_with_colors)}."
-        else:
-            return f"I'm sorry, I don't have information about {', '.join(colors)} {fruit}s."
 
     def answer_grow_question(self, fruit):
         return f"A {fruit} grows {self.fruit_grow_info[fruit]}."
@@ -146,6 +153,7 @@ class FruitChatbot:
         # Find relationships matching the taste
         taste_relationships = [relation for relation in relationships if
                                fuzz.partial_ratio(relation[2]['relation'], "tastes") > 80 and taste in relation[1]]
+        print(taste_relationships)
         if taste_relationships:
             taste = [r[1] for r in taste_relationships]
             taste = str(taste)[2:-2]
@@ -159,8 +167,9 @@ class FruitChatbot:
             return "Hello! How can I assist you with fruits today?"
 
         fruit = self.get_fruit_type(question)
-        print(fruit)
+        print("detected fruit ", fruit)
         colors = self.extract_colors(question)
+        print("detected colors ", colors)
 
         if fruit:
             if self.is_grow_question(question):
@@ -179,6 +188,8 @@ class FruitChatbot:
                 return self.answer_taste_question(fruit, taste)
 
             if self.is_color_question(question):
+                print("Is color question")
+                print(colors)
                 return self.answer_color_question(fruit, colors)
 
             if any(word in question.lower() for word in ["what", "define"]):
