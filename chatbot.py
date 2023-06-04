@@ -2,18 +2,20 @@ from typing import Dict
 from fuzzywuzzy import fuzz
 import networkx as nx
 from nltk.corpus import wordnet
+import spacy
 
 
 class FruitChatbot:
     def __init__(self):
         self.knowledge_graph, self.fruit_grow_info = self.build_knowledge_graph()
+        self.nlp = spacy.load("en_core_web_sm")
         self.greetings_list = [
             "hi", "hey", "hello", "good morning", "good afternoon", "good evening",
             "greetings", "salutations", "howdy", "hola", "bonjour", "ciao", "namaste",
             "yo", "what's up", "hi there", "good day", "how's it going", "sup"
         ]
         self.grow_list = ["grow", "grows", "growing", "grew", "growed", "growen"]
-        self.location_list = ["where", "place", "location", "country", "countries", "how"]
+        self.location_list = ["where", "place", "location", "country", "countries"]
         self.is_list = ["has", "contains", "have"]
         self.tastes_list = ["taste", "tastes", "tasting", "tasted", "tasteing", "tasteen", "flavor", "flavors",
                             "flavour", "flavours", "flavoring", "flavouring", "flavorings", "flavourings", "like",
@@ -22,6 +24,16 @@ class FruitChatbot:
                            "look", "looks", "looking", "looked", "looken",
                            "appearance", "appearances", "appearing", "appeared", "appearen", "appearence",
                            "appearences", "appearencing", "appearenced", "appearencen", ]
+
+        self.color_relationships = self.get_color_relationships()
+
+    def get_color_relationships(self):
+        color_relationships = {}
+        for fruit in self.knowledge_graph.nodes:
+            colors = [r[2]['color'] for r in self.knowledge_graph.edges(fruit, data=True) if
+                      r[2]['relation'] == 'is' and 'color' in r[2]]
+            color_relationships[fruit] = colors
+        return color_relationships
 
     def build_knowledge_graph(self):
         graph = nx.Graph()
@@ -85,73 +97,106 @@ class FruitChatbot:
         # Check if a word is a synonym of any word in a given list
         return any(self.is_synonym(word, w) for w in word_list)
 
+    def extract_colors(self, question):
+        doc = self.nlp(question)
+        colors = []
+
+        for ent in doc.ents:
+            if ent.label_ == "COLOR":
+                colors.append(ent.text)
+
+        return colors
+
+    def is_color_question(self, question):
+        return any(word in question for word in self.color_list)
+
+    def is_grow_question(self, question):
+        return any(word in question for word in self.grow_list) or any(
+            word in question for word in self.location_list)
+
+    def is_ingredient_question(self, question):
+        return any(word in question for word in self.is_list)
+
+    def is_taste_question(self, question):
+        return any(word in question for word in self.tastes_list)
+
+    def answer_color_question(self, fruit, colors):
+        fruits_with_colors = [fruit for fruit, fruit_colors in self.color_relationships.items() if
+                              any(color in fruit_colors for color in colors)]
+        if fruits_with_colors:
+            return f"A {fruit} can be {', '.join(colors)}. Other fruits with the same color are: {', '.join(fruits_with_colors)}."
+        else:
+            return f"I'm sorry, I don't have information about {', '.join(colors)} {fruit}s."
+
+    def answer_grow_question(self, fruit):
+        return f"A {fruit} grows {self.fruit_grow_info[fruit]}."
+
+    def answer_ingredient_question(self, fruit, nutrient):
+        relationships = self.knowledge_graph.edges(fruit, data=True)
+        # Find relationships matching the nutrient
+        nutrient_relationships = [r for r in relationships if
+                                  fuzz.partial_ratio(r[2]['relation'], "has") > 80 and nutrient in r[1]]
+        if nutrient_relationships:
+            return f"Yes, {fruit} contains {nutrient}."
+        else:
+            return f"No, I'm not aware of {fruit} containing {nutrient}."
+
+    def answer_taste_question(self, fruit, taste):
+        relationships = self.knowledge_graph.edges(fruit, data=True)
+        # Find relationships matching the taste
+        taste_relationships = [relation for relation in relationships if
+                               fuzz.partial_ratio(relation[2]['relation'], "tastes") > 80 and taste in relation[1]]
+        if taste_relationships:
+            taste = [r[1] for r in taste_relationships]
+            taste = str(taste)[2:-2]
+            return f"Yes, {fruit} tastes {taste}."
+        else:
+            return f"No, I'm not aware of the taste of {fruit} being {taste}."
+
     def answer_question(self, question):
         if any(greeting in question.lower() or self.is_synonym_of_list(question.lower(), greeting.split()) for greeting
                in self.greetings_list):
             return "Hello! How can I assist you with fruits today?"
 
         fruit = self.get_fruit_type(question)
+        print(fruit)
+        colors = self.extract_colors(question)
 
-        if fruit:  # If a fruit was found
-            # Get the relationships of the fruit in the knowledge graph
+        if fruit:
+            if self.is_grow_question(question):
+                return self.answer_grow_question(fruit)
+
+            if self.is_ingredient_question(question):
+                # Extract the nutrient from the question
+                keywords = [word for word in self.is_list if word in question]
+                nutrient = question.split(keywords[0])[1].strip()
+                return self.answer_ingredient_question(fruit, nutrient)
+
+            if self.is_taste_question(question):
+                # Extract the taste from the question
+                keywords = [word for word in self.tastes_list if word in question]
+                taste = question.split(keywords[0])[1].strip()
+                return self.answer_taste_question(fruit, taste)
+
+            if self.is_color_question(question):
+                return self.answer_color_question(fruit, colors)
+
+            if any(word in question.lower() for word in ["what", "define"]):
+                return f"{fruit} is a type of fruit."
+
             relationships = self.knowledge_graph.edges(fruit, data=True)
-
-            if any(word in question for word in
-                   self.grow_list or self.is_synonym_of_list(question.lower(), self.grow_list)) or any(
-                word in question for word in
-                self.location_list or self.is_synonym_of_list(question.lower(), self.location_list)):
-                return f"a {fruit} grows {self.fruit_grow_info[fruit]}."
-
+            # Generate the response with the known relationships of the fruit
             if relationships:
-                if any(word in question for word in
-                       self.is_list or self.is_synonym_of_list(question.lower(), self.is_list)):
-                    # Extract the nutrient from the question
-                    keywords = [word for word in self.is_list if word in question]
-                    nutrient = question.split(keywords[0])[1].strip()
-
-                    # Find relationships matching the nutrient
-                    nutrient_relationships = [r for r in relationships if
-                                              fuzz.partial_ratio(r[2], "has") > 80 and nutrient in r[1]]
-                    if nutrient_relationships:
-                        return f"Yes, {fruit} contains {nutrient}."
-                    else:
-                        return f"No, I'm not aware of {fruit} containing {nutrient}."
-                elif any(word in question for word in
-                         self.tastes_list or self.is_synonym_of_list(question.lower(), self.tastes_list)):
-                    # Extract the taste from the question
-                    keywords = [word for word in self.tastes_list if word in question]
-                    taste = question.split(keywords[0])[1].strip()
-
-                    # Find relationships matching the taste
-                    taste_relationships = [r for r in relationships if
-                                           fuzz.partial_ratio(r[2], "tastes") > 80 and taste in r[1]]
-                    if taste_relationships:
-                        fruits_with_taste = [r[0] for r in taste_relationships]
-                        return f"Yes, {fruit} tastes {taste}. Other fruits with similar taste are: {', '.join(fruits_with_taste)}."
-                    else:
-                        return f"No, I'm not aware of the taste of {fruit} being {taste}."
-                elif any(word in question for word in
-                         self.color_list or self.is_synonym_of_list(question.lower(), self.color_list)):
-                    # Extract the color from the question
-                    keywords = [word for word in self.color_list if word in question]
-                    color = question.split(keywords[0])[1].strip()
-
-                    # Find relationships matching the color
-                    color_relationships = [r for r in relationships if
-                                           fuzz.partial_ratio(r[2], "is") > 80 and color in r[1]]
-                    if color_relationships:
-                        fruits_with_color = [r[0] for r in color_relationships]
-                        return f"Yes, {fruit} is {color}. Other fruits with the same color are: {', '.join(fruits_with_color)}."
-                    else:
-                        return f"No, I'm not aware of {fruit} being {color} in color."
-                else:
-                    # Generate the response with the known relationships of the fruit
-                    response = f"Here's what I know about {fruit}:"
-                    for relationship in relationships:
-                        response += f"\n- {fruit} {relationship[1]} {relationship[2]}"
-                    return response
+                response = f"Here's what I know about {fruit}:"
+                for relationship in relationships:
+                    response += f"\n- {fruit} {relationship[2]['relation']} {relationship[1]}"
+                return response
             else:
+                print(fruit)
                 return f"I'm sorry, I don't have information about {fruit}."
+
+        # If no fruit was found in the question
+        return "I'm sorry, I'm not sure which fruit you're referring to."
 
     def get_fruit_type(self, question):
         return self.fuzzy_match(question, self.knowledge_graph.nodes)
