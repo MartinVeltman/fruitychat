@@ -9,21 +9,35 @@ class FruitChatbot:
     def __init__(self):
         self.knowledge_graph, self.fruit_grow_info = self.build_knowledge_graph()
         self.nlp = spacy.load("en_core_web_sm")
+
         self.greetings_list = [
             "hi", "hey", "hello", "good morning", "good afternoon", "good evening",
             "greetings", "salutations", "howdy", "hola", "bonjour", "ciao", "namaste",
             "yo", "what's up", "hi there", "good day", "how's it going", "sup"
         ]
+
         self.grow_list = ["grow", "grows", "growing", "grew", "growed", "growen"]
+
         self.location_list = ["where", "place", "location", "country", "countries"]
+
         self.is_list = ["has", "contains", "have"]
+
         self.tastes_list = ["taste", "tastes", "tasting", "tasted", "tasteing", "tasteen", "flavor", "flavors",
                             "flavour", "flavours", "flavoring", "flavouring", "flavorings", "flavourings", "like",
                             "savour", "bite", "savor", "sapidity", "savouriness", "tang", "tanginess", "tangy", ]
+
         self.color_list = ["color", "colors", "colour", "colours", "coloring", "colouring", "colorings", "colourings",
                            "look", "looks", "looking", "looked", "looken",
                            "appearance", "appearances", "appearing", "appeared", "appearen", "appearence",
-                           "appearences", "appearencing", "appearenced", "appearencen", ]
+                           "appearences", "appearencing", "appearenced", "appearencen", 'yellow', 'scarlet', 'coral',
+                           'silver', 'amber', 'azure', 'coffee', 'khaki', 'aquamarine',
+                           'lime', 'crimson', 'rose', 'vermilion', 'jade', 'white', 'blue', 'turquoise', 'chocolate',
+                           'plum', 'carmine', 'indigo', 'orchid', 'teal', 'purple', 'bronze', 'lavender', 'wheat',
+                           'magenta', 'beige', 'cyan', 'lemon', 'sapphire', 'champagne', 'salmon', 'green',
+                           'chartreuse', 'ochre', 'copper', 'pink', 'gold', 'burgundy', 'orange', 'peach', 'emerald',
+                           'mauve', 'gray', 'apricot', 'navy', 'mustard', 'brown', 'lilac', 'maroon', 'olive', 'violet',
+                           'tan', 'cerise', 'cream', 'sienna', 'cerulean', 'ivory', 'red', 'grey', 'black', 'fuchsia']
+
 
         self.color_relationships = self.get_color_relationships()
 
@@ -46,17 +60,17 @@ class FruitChatbot:
         return color_relationships
 
     def answer_color_question(self, fruit, colors):
-       #als colors nul is en er geen kleur opgeven is antwoord met bijv apple is rood
+        # als colors nul is en er geen kleur opgeven is antwoord met bijv apple is rood
         if len(colors) == 0:
             return f"{fruit} can have the color {self.color_relationships[fruit][0]}"
 
-        #als colors niet nul is en er is een kleur opgegeven is kijk of de kleur in de lijst van kleuren van de fruit zit of een synoniem is zo ja antwoord met bijv apple is rood
-       #zo nee antwoord met bijv apple is niet rood
+        # als colors niet nul is en er is een kleur opgegeven is kijk of de kleur in de lijst van kleuren van de fruit zit of een synoniem is zo ja antwoord met bijv apple is rood
+        # zo nee antwoord met bijv apple is niet rood
         for color in colors:
-            if color in self.color_relationships[fruit] or self.is_synonym_of_list(color, self.color_relationships[fruit]):
+            if color in self.color_relationships[fruit] or self.is_synonym_of_list(color,
+                                                                                   self.color_relationships[fruit]):
                 return f"{fruit} can have the color {color}"
         return f"{fruit} is not {colors[0]}"
-
 
     def build_knowledge_graph(self):
         graph = nx.Graph()
@@ -121,7 +135,6 @@ class FruitChatbot:
         return any(self.is_synonym(word, w) for w in word_list)
 
     def is_color_question(self, question):
-        print("Is color question", any(word in question for word in self.color_list))
         return any(word in question for word in self.color_list)
 
     def is_grow_question(self, question):
@@ -153,7 +166,7 @@ class FruitChatbot:
         # Find relationships matching the taste
         taste_relationships = [relation for relation in relationships if
                                fuzz.partial_ratio(relation[2]['relation'], "tastes") > 80 and taste in relation[1]]
-        print(taste_relationships)
+
         if taste_relationships:
             taste = [r[1] for r in taste_relationships]
             taste = str(taste)[2:-2]
@@ -188,7 +201,6 @@ class FruitChatbot:
                 return self.answer_taste_question(fruit, taste)
 
             if self.is_color_question(question):
-                print("Is color question")
                 print(colors)
                 return self.answer_color_question(fruit, colors)
 
