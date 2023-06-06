@@ -1,5 +1,6 @@
 # Fruity - A simple chatbot
-### Student name, number: Martin Veltman, 709341
+### Student name: Martin Veltman
+### Student number: 709341
 ## Description
 The chatbot is designed to answer questions related to fruits. It has knowledge about various fruits, their characteristics, and nutrients. It uses this knowledge to provide informative responses to user questions.
 
