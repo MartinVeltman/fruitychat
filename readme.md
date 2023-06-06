@@ -1,9 +1,9 @@
 # Fruity - A simple chatbot
 ### Student name, number: Martin Veltman, 709341
 ## Description
-The chatbot is designed to answer questions related to fruits. It has knowledge about various fruits, their characteristics, and relationships with other fruits. It uses this knowledge to provide informative responses to user questions.
+The chatbot is designed to answer questions related to fruits. It has knowledge about various fruits, their characteristics, and nutrients. It uses this knowledge to provide informative responses to user questions.
 
-To build the chatbot, several NLP techniques were employed:
+To build the chatbot, several NLP techniques were used:
 
 1. Knowledge Graph: The chatbot's knowledge is represented as a graph structure called a knowledge graph. Each fruit is represented as a node in the graph, and relationships between fruits are represented as edges. For example, if the relationship between "apple" and "red color" is known, there will be an edge connecting the "apple" node to the "red color" node in the graph.
 
