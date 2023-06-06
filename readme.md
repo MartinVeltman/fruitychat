@@ -24,7 +24,7 @@ For example, if a user asks, "What nutrients does an apple contain?", the chatbo
 ## Installation
 1. Clone the repository:
 ```bash
-git clone
+git clone https://github.com/MartinVeltman/fruitychat
 ```
 2. Install the required packages:
 ```bash
