@@ -1,14 +1,17 @@
+import re
 from typing import Dict
 from fuzzywuzzy import fuzz
 import networkx as nx
 from nltk.corpus import wordnet
 import spacy
+import wikipediaapi
+import requests
 
 
 class FruitChatbot:
     def __init__(self):
         self.knowledge_graph, self.fruit_grow_info = self.build_knowledge_graph()
-        self.nlp = spacy.load("en_core_web_sm")
+        self.nlp = spacy.load("en_core_web_lg")
 
         self.greetings_list = [
             "hi", "hey", "hello", "good morning", "good afternoon", "good evening",
@@ -23,17 +26,31 @@ class FruitChatbot:
         self.is_list = ["has", "contains", "have", "nutrients", "nutrient", "vitamins", "vitamin", "minerals",
                         "ingredient", "ingredients", "contain"]
 
+        self.flavor_list = ["sweet", "sour", "bitter", "salty", "savory", "sapidity", "savouriness", "tang",
+                            "tanginess", "tangy", "savour"]
+
         self.tastes_list = ["taste", "tastes", "tasting", "tasted", "tasteing", "tasteen", "flavor", "flavors",
-                            "flavour", "flavours", "flavoring", "flavouring", "flavorings", "flavourings", "like",
-                            "savour", "bite", "savor", "sapidity", "savouriness", "tang", "tanginess", "tangy", ]
+                            "flavour", "flavours", "flavoring", "flavouring", "flavorings", "flavourings",
+                            "like"] + self.flavor_list
 
         self.color_list = ["color", "colors", "colour", "colours", "coloring", "colouring", "colorings", "colourings",
                            "look", "looks", "looking", "looked", "looken",
                            "appearance", "appearances", "appearing", "appeared", "appearen", "appearence",
                            "appearences", "appearencing", "appearenced", "appearencen", "yellow", "red", "green",
-                           " orange", "blue", "purple", "pink"]
+                           "orange", "blue", "purple", "pink"]
+        self.nutrient_list = ["nutrient", "nutrients", "vitamins", "mineral", "minerals", "ingredient", "calcium",
+                              "potassium", "iron", "magnesium", "phosphorus", "sodium", "zinc", "copper", "manganese",
+                              "selenium", "vitamin a", "vitamin c", "vitamin b1", "vitamin b2", "vitamin b3",
+                              "vitamin b5", "vitamin b6",
+                              "vitamin b9", "vitamin b12", "vitamin", "vitamin d", "vitamin e", "vitamin k",
+                              "vitamin b",
+                              "vitamin b complex", "vitamin b17", "vitamin b3", "vitamin b5", "vitamin b6",
+                              "vitamin b7", "vitamin"
+                              ]
 
         self.color_relationships = self.get_color_relationships()
+
+        self.add_fruit_to_knowledge_graph("Pitaya")
 
     def build_knowledge_graph(self):
         graph = nx.Graph()
@@ -42,7 +59,7 @@ class FruitChatbot:
             "apple", "banana", "orange", "grape", "strawberry", "mango", "pineapple", "watermelon",
             "pear", "kiwi", "blueberry", "raspberry", "peach", "cherry", "lemon", "lime", "plum",
             "pomegranate", "blackberry", "avocado", "apricot", "coconut", "fig", "grapefruit",
-            "guava", "melon", "papaya", "passion fruit"
+            "guava", "melon", "papaya", "passion fruit", "pitaya"
         ]
         graph.add_nodes_from(fruits)
 
@@ -61,6 +78,56 @@ class FruitChatbot:
         graph.add_edges_from((r[0], r[2], {'relation': r[1]}) for r in relationships)
 
         return graph, fruit_grow_info
+
+    def fetch_wikipedia_content(self, page_title):
+        wiki_wiki = wikipediaapi.Wikipedia('en')
+        page = wiki_wiki.page(page_title)
+
+        return page.text
+
+    def add_fruit_to_knowledge_graph(self, page_title):
+        content = self.fetch_wikipedia_content(page_title)
+
+        color_section = "color"
+        if color_section in content:
+            color_content = content.split(color_section)[1].split("==")[0]
+            color_info = [color.strip() for color in color_content.split("\n") if color.strip()]
+            if color_info:
+                self.knowledge_graph.add_node(page_title.lower())
+                for color_sentence in color_info:
+                    color_info = color_sentence.split(" ")
+                    for color in color_info:
+                        if color.lower() in self.color_list:
+                            self.knowledge_graph.add_edge(page_title.lower(), color, relation="is color")
+                            continue
+
+        nutrient_section = "nutrient content"
+        if nutrient_section in content:
+            nutrient_content = content.split(nutrient_section)[1].split("nutrition facts")[0]
+            nutrient_info = [nutrient.strip() for nutrient in nutrient_content.split(",") if nutrient.strip()]
+            if nutrient_info:
+                self.knowledge_graph.add_node(page_title.lower())
+                for nutrient_sentence in nutrient_info:
+                    nutrient_info = nutrient_sentence.split(" ")
+                    for nutrient in nutrient_info:
+                        if nutrient.lower() in self.nutrient_list:
+                            self.knowledge_graph.add_edge(page_title.lower(), nutrient, relation="has")
+                            continue
+
+        taste_section = "taste"
+        if taste_section in content:
+            taste_content = content.split(taste_section)[1].split("==")[0]
+            taste_info = [taste.strip() for taste in taste_content.split("\n") if taste.strip()]
+            if taste_info:
+                self.knowledge_graph.add_node(page_title.lower())
+                for taste_sentence in taste_info:
+                    taste_info = taste_sentence.split(" ")
+                    for taste in taste_info:
+                        if taste.lower() in self.flavor_list:
+                            self.knowledge_graph.add_edge(page_title.lower(), taste.lower(), relation="tastes")
+                            continue
+
+        print(self.knowledge_graph.edges(data=True))
 
     def fuzzy_match(self, query, entities):
         best_match = None
@@ -172,10 +239,14 @@ class FruitChatbot:
             return f"No, I'm not aware of the taste of {fruit} being {taste}."
 
     def is_greeting(self, question):
-        if any(greeting in question.lower() or self.is_synonym_of_list(question.lower(), greeting.split()) for greeting
-               in self.greetings_list):
+        question = question.split()
+        if any(word in question for word in self.greetings_list):
             return True
-        return False
+        else:
+            return False
+
+
+
 
     def answer_question(self, question):
         if self.is_greeting(question):
