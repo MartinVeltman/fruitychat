@@ -1,17 +1,15 @@
-import re
 from typing import Dict
 from fuzzywuzzy import fuzz
 import networkx as nx
 from nltk.corpus import wordnet
 import spacy
 import wikipediaapi
-import requests
 
 
 class FruitChatbot:
     def __init__(self):
         self.knowledge_graph, self.fruit_grow_info = self.build_knowledge_graph()
-        self.nlp = spacy.load("en_core_web_lg")
+        self.nlp = spacy.load("en_core_web_sm")
 
         self.greetings_list = [
             "hi", "hey", "hello", "good morning", "good afternoon", "good evening",
@@ -48,9 +46,8 @@ class FruitChatbot:
                               "vitamin b7", "vitamin", "fiber"
                               ]
 
-        self.color_relationships = self.get_color_relationships()
-
         self.add_fruit_to_knowledge_graph("Pitaya")
+        self.color_relationships = self.get_color_relationships()
 
     def build_knowledge_graph(self):
         graph = nx.Graph()
@@ -127,8 +124,6 @@ class FruitChatbot:
                             self.knowledge_graph.add_edge(page_title.lower(), taste.lower(), relation="tastes")
                             continue
 
-        print(self.knowledge_graph.edges(data=True))
-
     def fuzzy_match(self, query, entities):
         best_match = None
         max_score = 0
@@ -181,7 +176,10 @@ class FruitChatbot:
 
     def answer_color_question(self, fruit, colors):
         if len(colors) == 0:
-            return f"{fruit} can have the color {self.color_relationships[fruit][0]}"
+            if len(self.color_relationships[fruit]) == 1:
+                return f"{fruit} can have the color {self.color_relationships[fruit][0]}"
+            elif len(self.color_relationships[fruit]) > 1:
+                return f"{fruit} can have the colors {', '.join(self.color_relationships[fruit])}"
 
         if len(self.color_relationships[fruit]) > 0:
             for color in colors:
@@ -230,13 +228,12 @@ class FruitChatbot:
 
     def answer_taste_question(self, fruit, taste):
         relationships = self.knowledge_graph.edges(fruit, data=True)
-        # Find relationships matching the taste
         taste_relationships = [relation for relation in relationships if
                                fuzz.partial_ratio(relation[2]['relation'], "tastes") > 80 and taste in relation[1]]
         if taste_relationships:
             taste = [r[1] for r in taste_relationships]
             taste = str(taste)[2:-2]
-            return f"{fruit} tastes {taste}."
+            return f"A {fruit} tastes {taste}."
         else:
             return f"No, I'm not aware of the taste of {fruit} being {taste}."
 
@@ -252,7 +249,6 @@ class FruitChatbot:
             return "Hello! How can I assist you with fruits today?"
 
         fruit = self.get_fruit_type(question)
-        print(fruit)
         colors = self.extract_colors(question)
 
         if fruit:
@@ -296,6 +292,7 @@ class FruitChatbot:
         return self.fuzzy_match(question, self.knowledge_graph.nodes)
 
     def chat(self):
+        print("Chatbot: Hello! How can I assist you with fruits today?")
         while True:
             user_input = input("User: ")
 
