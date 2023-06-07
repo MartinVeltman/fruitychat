@@ -45,7 +45,7 @@ class FruitChatbot:
                               "vitamin b9", "vitamin b12", "vitamin", "vitamin d", "vitamin e", "vitamin k",
                               "vitamin b",
                               "vitamin b complex", "vitamin b17", "vitamin b3", "vitamin b5", "vitamin b6",
-                              "vitamin b7", "vitamin"
+                              "vitamin b7", "vitamin", "fiber"
                               ]
 
         self.color_relationships = self.get_color_relationships()
@@ -224,7 +224,9 @@ class FruitChatbot:
         elif nutrient_relationships:
             return f"Yes, {fruit} contains {nutrient}."
         else:
-            return f"No, I'm not aware of {fruit} containing {nutrient}."
+            if nutrient in self.nutrient_list:
+                return f"No, {fruit} does not contain {nutrient}."
+            return f"A {fruit} contains {[r[1] for r in nutrient_relationships]}."
 
     def answer_taste_question(self, fruit, taste):
         relationships = self.knowledge_graph.edges(fruit, data=True)
@@ -244,9 +246,6 @@ class FruitChatbot:
             return True
         else:
             return False
-
-
-
 
     def answer_question(self, question):
         if self.is_greeting(question):
