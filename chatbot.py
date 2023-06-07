@@ -264,7 +264,7 @@ class FruitChatbot:
                     return "I'm sorry, I couldn't determine the nutrient in the question."
 
             if self.is_taste_question(question):
-                # Extract the taste from the question
+
                 keywords = [word for word in self.tastes_list if word in question]
                 taste = question.split(keywords[0])[1].strip()
                 return self.answer_taste_question(fruit, taste)
@@ -276,7 +276,7 @@ class FruitChatbot:
                 return f"{fruit} is a type of fruit."
 
             relationships = self.knowledge_graph.edges(fruit, data=True)
-            # Generate the response with the known relationships of the fruit
+
             if relationships:
                 response = f"Here's what I know about {fruit}:"
                 for relationship in relationships:
@@ -285,7 +285,6 @@ class FruitChatbot:
             else:
                 return f"I'm sorry, I don't have information about {fruit}."
 
-        # If no fruit was found in the question
         return "I'm sorry, I'm not sure which fruit you're referring to."
 
     def get_fruit_type(self, question):
