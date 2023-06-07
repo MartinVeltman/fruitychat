@@ -21,6 +21,15 @@ To build the chatbot, several NLP techniques were used:
 The chatbot categorizes user questions into different types, such as growth-related questions, taste-related questions, color-related questions, and ingredient-related questions. It then uses the appropriate techniques and the knowledge graph to generate informative responses based on the category of the question.
 
 For example, if a user asks, "What nutrients does an apple contain?", the chatbot recognizes it as an ingredient-related question and retrieves the relevant information from the knowledge graph to provide an answer.
+## the knowledge graph
+Since the the way to make a knowledge graph in the lectures didn't work for me, I did it a little bit different with the add_fruit_to_knowledge_graph method. This method takes a page_title as input and fetches the content of the corresponding Wikipedia page using the fetch_wikipedia_content method. It then processes the content to extract information about the fruit's color, nutrient content, and taste.
+
+Color extraction: It searches for the "color" section in the content and extracts the color information by splitting the content and removing unnecessary parts. It does this by looking if a word from the text matches a color. It then adds the fruit as a node to the knowledge graph and creates an edge between the fruit node and the color node, with the relation "is color."
+
+Nutrient extraction: It searches for the "nutrient content" section in the content and extracts the nutrient information by splitting the content and removing unnecessary parts.It does this by looking if a word from the text matches a nutrient. It then adds the fruit as a node to the knowledge graph and creates an edge between the fruit node and the nutrient nodes, with the relation "has."
+
+Taste extraction: It searches for the "taste" section in the content and extracts the taste information by splitting the content and removing unnecessary parts. Then it does the same as with the color and nutrient extraction.
+
 
 ## Installation
 1. Clone the repository:
